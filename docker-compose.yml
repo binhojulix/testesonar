@@ -1,0 +1,105 @@
+version: '3.8'
+name: sonar-and-mssql
+
+services:
+
+
+  # sqlserver:
+  #   container_name: sqlserver
+  #   platform: linux/arm64
+  #   image: mcr.microsoft.com/mssql/server
+  #   environment:
+  #     SA_PASSWORD: "SqlServer2019!"
+  #     ACCEPT_EULA: "Y"
+  #     MSSQL_PID: "Developer"
+  #   ports:
+  #     - "1433:1433"
+
+  # mssqltools:
+  #   image: mcr.microsoft.com/mssql-tools
+  #   platform: linux/arm64
+  #   depends_on:
+  #     - sqlserver
+  #   volumes:
+  #     - ./mssql/data:/var/opt/mssql/data/
+
+  sonarqube:
+    image: mwizner/sonarqube:8.7.1-community 
+    platform: linux/arm64
+    container_name: sonarqube
+    restart: unless-stopped
+    environment:
+      - SONAR_ES_BOOTSTRAP_CHECKS_DISABLE=true
+      - SONARQUBE_JDBC_USERNAME=admin
+      - SONARQUBE_JDBC_PASSWORD=Admin123
+      - SONARQUBE_JDBC_URL=jdbc:postgresql://db_sonar:5432/sonarqube
+    ports:
+      - "9001:9000"
+      - "9092:9092"
+    networks:
+    - sonarnet
+    volumes:
+      - sonarqube_conf:/opt/sonarqube/conf
+      - sonarqube_data:/opt/sonarqube/data
+      - sonarqube_extensions:/opt/sonarqube/extensions
+      - sonarqube_bundled-plugins:/opt/sonarqube/lib/bundled-plugins
+
+
+  db_sonar:
+    image: postgres:10.1
+    container_name: db_sonar
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=Admin123
+      - POSTGRES_DB=sonarqube
+    
+    networks:
+          - sonarnet
+    volumes:
+      - ./postges/sonarqube_db:/var/lib/postgresql10
+      - ./postges/postgresql_data:/var/lib/postgresql10/data
+    ports:
+      - "5432:5432"
+
+  sonarscanner-front:
+    image: newtmitch/sonar-scanner
+    container_name: sonar_frontend
+    # restart: always
+    networks:
+      - sonarnet
+    depends_on:
+      - sonarqube
+    volumes:
+      - ./automatizador-module/automatizador:/usr/src
+      - ./automatizador-module/sonar-scanner.properties:/usr/lib/sonar-scanner/conf/sonar-scanner.properties
+    
+  # sonarscanner-backend:
+  #   image: newtmitch/sonar-scanner
+  #   container_name: sonar_backend
+  #   restart: always
+  #   networks:
+  #     - sonarnet
+  #   depends_on:
+  #     - sonarqube
+  #   volumes:
+  #     - ./automatizador-service/server:/usr/src
+  #     - ./automatizador-service/sonar-scanner.properties:/usr/lib/sonar-scanner/conf/sonar-scanner.properties
+
+
+
+volumes:
+  sonarqube_data:
+  sonarqube_conf:
+  sonarqube_extensions:
+  sonarquebe_logs:
+  sonarqube_bundled-plugins:
+  sonarqube_db:
+
+
+networks:
+  sonarnet:
+  
+
+  
+  
