@@ -4,25 +4,6 @@ name: sonar-and-mssql
 services:
 
 
-  # sqlserver:
-  #   container_name: sqlserver
-  #   platform: linux/arm64
-  #   image: mcr.microsoft.com/mssql/server
-  #   environment:
-  #     SA_PASSWORD: "SqlServer2019!"
-  #     ACCEPT_EULA: "Y"
-  #     MSSQL_PID: "Developer"
-  #   ports:
-  #     - "1433:1433"
-
-  # mssqltools:
-  #   image: mcr.microsoft.com/mssql-tools
-  #   platform: linux/arm64
-  #   depends_on:
-  #     - sqlserver
-  #   volumes:
-  #     - ./mssql/data:/var/opt/mssql/data/
-
   sonarqube:
     image: mwizner/sonarqube:8.7.1-community 
     platform: linux/arm64
@@ -74,17 +55,17 @@ services:
       - ./automatizador-module/automatizador:/usr/src
       - ./automatizador-module/sonar-scanner.properties:/usr/lib/sonar-scanner/conf/sonar-scanner.properties
     
-  # sonarscanner-backend:
-  #   image: newtmitch/sonar-scanner
-  #   container_name: sonar_backend
-  #   restart: always
-  #   networks:
-  #     - sonarnet
-  #   depends_on:
-  #     - sonarqube
-  #   volumes:
-  #     - ./automatizador-service/server:/usr/src
-  #     - ./automatizador-service/sonar-scanner.properties:/usr/lib/sonar-scanner/conf/sonar-scanner.properties
+  sonarscanner-backend:
+    image: newtmitch/sonar-scanner
+    container_name: sonar_backend
+    restart: always
+    networks:
+      - sonarnet
+    depends_on:
+      - sonarqube
+    volumes:
+      - ./automatizador-service/server:/usr/src
+      - ./automatizador-service/sonar-scanner.properties:/usr/lib/sonar-scanner/conf/sonar-scanner.properties
 
 
 
